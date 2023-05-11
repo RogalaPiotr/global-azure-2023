@@ -16,7 +16,7 @@ on:
 
 env:
   # Use docker.io for Docker Hub if empty.
-  REGISTRY: ghcr.io/${{ github.actor }}
+  REGISTRY: ghcr.io/rogalapiotr
   # github.repository as <account>/<repo>
   API_IMAGE_NAME: fabrikam-api
   INIT_IMAGE_NAME: fabrikam-init  
