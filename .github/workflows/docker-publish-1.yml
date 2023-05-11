@@ -207,3 +207,25 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta-web.outputs.tags }}
           labels: ${{ steps.meta-web.outputs.labels }}
+
+  deploy:
+      # The type of runner that the job will run on
+      runs-on: ubuntu-latest
+
+      # Steps represent a sequence of tasks that will be executed as part of the job
+      steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2                
+
+      - name: Login on Azure CLI
+        uses: azure/login@v1.1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy WebApp
+        shell: pwsh
+        env:
+          CR_PAT: ${{ secrets.CR_PAT }}
+        run: |
+          cd ./infrastructure
+          ./4-deploy-webapp.ps1 -studentprefix pr
