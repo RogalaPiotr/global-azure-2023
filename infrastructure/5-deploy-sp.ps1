@@ -1,4 +1,4 @@
-$studentprefix ="pr"
+$studentprefix ="XXX"
 $resourcegroupName = "fabmedical-rg-" + $studentprefix
 
 [string]$id = $(az group show `
@@ -9,6 +9,5 @@ az ad sp create-for-rbac `
     --name "fabmedical-$studentprefix" `
     --sdk-auth `
     --role contributor `
-    --scopes $id
-
-# copy/paste id to scope
+    --scopes '<ADD VALUE from $id>' # copy/paste value from $id and to scope
+                                    # here is issue in powershell / cli variable becauseaz group show returning in 'id'
