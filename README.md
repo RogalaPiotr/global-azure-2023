@@ -459,7 +459,7 @@ deploy:
         CR_PAT: ${{ secrets.CR_PAT }}
       run: |
         cd ./infrastructure
-        ./deploy-webapp.ps1 -studentprefix XXX  # <-- This needs to
+        ./4-deploy-webapp.ps1 -studentprefix XXX  # <-- This needs to
                                                 # match the student
                                                 # prefix we use in
                                                 # previous steps.
