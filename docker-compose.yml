@@ -1,17 +1,16 @@
 version: "3.4"
 services:
   api:
-    image: ghcr.io/rogalapiotr/fabrikam-api:main
+    image: ghcr.io/{githubusername}/fabrikam-api:main
     ports:
       - "3001:3001"
 
   web:
-    #image: ghcr.io/rogalapiotr/fabrikam-web:main
-    image: ghcr.io/rogalapiotr/fabrikam-web:main
+    #image: ghcr.io/{githubusername}/fabrikam-web:main
+    image: ghcr.io/{githubusername}/fabrikam-web:main
     depends_on:
-        - api
+      - api
     environment:
-        CONTENT_API_URL: http://api:3001
+      CONTENT_API_URL: http://api:3001
     ports:
-        - "3000:80"
-        
+      - "3000:80"
