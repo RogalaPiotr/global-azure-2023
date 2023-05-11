@@ -73,7 +73,7 @@ Instruction: [https://docs.github.com/en/authentication/keeping-your-account-and
 
     ![https://github.com/microsoft/MCW-Continuous-delivery-in-Azure-DevOps/raw/master/Hands-on%20lab/media/hol-ex1-task4-step5-1.png](https://github.com/microsoft/MCW-Continuous-delivery-in-Azure-DevOps/raw/master/Hands-on%20lab/media/hol-ex1-task4-step5-1.png)
 
-6. Rename file named `docker-publish.yml`. to `docker-publish-1.yml`
+6. Rename file named `1-docker-publish.yml`. to `docker-publish-1.yml`
 7. Paste there this code:
 
     ```powershell
@@ -408,3 +408,210 @@ Browse to the `Overview` blade of the Azure Web Application detail page and fi
 ![https://github.com/microsoft/MCW-Continuous-delivery-in-Azure-DevOps/raw/master/Hands-on%20lab/media/hol-ex2-task2-step6-2.png](https://github.com/microsoft/MCW-Continuous-delivery-in-Azure-DevOps/raw/master/Hands-on%20lab/media/hol-ex2-task2-step6-2.png)
 
 ## Phase 7
+
+Open the `5-deploy-sp.ps1`and edit names before run script.
+
+![Untitled](./media/Untitled%2017.png)
+
+Run script `5-deploy-sp.ps1` and copy whole output
+
+```powershell
+{
+    "clientId": "...",
+    "clientSecret": "...",
+    "subscriptionId": "...",
+    "tenantId": "...",
+    "activeDirectoryEndpointUrl": "https://login.microsoftonline.com",
+    "resourceManagerEndpointUrl": "https://management.azure.com/",
+    "activeDirectoryGraphResourceId": "https://graph.windows.net/",
+    "sqlManagementEndpointUrl": "https://management.core.windows.net:8443/",
+    "galleryEndpointUrl": "https://gallery.azure.com/",
+    "managementEndpointUrl": "https://management.core.windows.net/"
+}
+```
+
+After then, create a new repository secret named `AZURE_CREDENTIALS`. Paste the JSON output copied from previous step to the secret value and save it.
+
+Example URL: [https://github.com/RogalaPiotr/global-azure-2023/settings/secrets/actions](https://github.com/RogalaPiotr/global-azure-2023/settings/secrets/actions)
+
+In next step, rename file named `2-docker-publish.yml`. to `docker-publish-2.yml` and move to ./github/workflow
+
+Please check differences with firs file. There is added section:
+
+```powershell
+deploy:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v2                
+
+    - name: Login on Azure CLI
+      uses: azure/login@v1.1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Deploy WebApp
+      shell: pwsh
+      env:
+        CR_PAT: ${{ secrets.CR_PAT }}
+      run: |
+        cd ./infrastructure
+        ./4-deploy-webapp.ps1 -studentprefix XXX  # <-- This needs to
+                                                # match the student
+                                                # prefix we use in
+                                                # previous steps.
+```
+
+Commit changes and run in GitHub Actions - `docker-publish-2`
+
+Effect:
+
+![Untitled](./media/Untitled%2018.png)
+
+## Phase 8
+
+Open clean/new Azure DevOps project.
+
+Navigate to your Azure DevOps project, select the `Project Settings` blade, and open the `Service Connections` tab.
+
+Create a new `Docker Registry` service connection and set the values to:
+
+- Docker Registry: [https://ghcr.io](https://ghcr.io/)
+- Docker ID: [GitHub account name]
+- Docker Password: [GitHub Personal Access Token]
+- Service connection name: GitHub Container Registry
+
+![https://github.com/microsoft/MCW-Continuous-delivery-in-Azure-DevOps/raw/master/Hands-on%20lab/media/hol-ex3-task3-step3-1.png](https://github.com/microsoft/MCW-Continuous-delivery-in-Azure-DevOps/raw/master/Hands-on%20lab/media/hol-ex3-task3-step3-1.png)
+
+Navigate to your Azure DevOps  project, select the `Pipelines` blade, and create a new pipeline.
+
+![https://github.com/microsoft/MCW-Continuous-delivery-in-Azure-DevOps/raw/master/Hands-on%20lab/media/hol-ex3-task3-step4-1.png](https://github.com/microsoft/MCW-Continuous-delivery-in-Azure-DevOps/raw/master/Hands-on%20lab/media/hol-ex3-task3-step4-1.png)
+
+In the `Connect` tab, choose the `GitHub` selection.
+
+![https://github.com/microsoft/MCW-Continuous-delivery-in-Azure-DevOps/raw/master/Hands-on%20lab/media/hol-ex3-task3-step5-1.png](https://github.com/microsoft/MCW-Continuous-delivery-in-Azure-DevOps/raw/master/Hands-on%20lab/media/hol-ex3-task3-step5-1.png)
+
+Probably you should authorise GitHub in Azure DevOps… there will be few steps more with “next, next”
+
+Select your GitHub lab files repository. Azure DevOps will redirect you to authorise yourself with GitHub. Log in and select the repository that you want to allow Azure DevOps to access.
+
+In the `Configure` tab, choose the `Starter Pipeline`.
+
+![https://github.com/microsoft/MCW-Continuous-delivery-in-Azure-DevOps/raw/master/Hands-on%20lab/media/hol-ex3-task3-step7-1.png](https://github.com/microsoft/MCW-Continuous-delivery-in-Azure-DevOps/raw/master/Hands-on%20lab/media/hol-ex3-task3-step7-1.png)
+
+Remove all in the file:
+
+```powershell
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+```
+
+And paste this:
+
+```powershell
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+- stage: build
+  jobs:
+  - job: 'BuildAndPublish'
+    displayName: 'Build and Publish'
+    steps:
+    - task: DockerCompose@0
+      inputs:
+        containerregistrytype: 'Container Registry'
+        dockerRegistryEndpoint: 'GitHub Container Registry'
+        dockerComposeFile: '**/docker-compose.yml'
+        additionalDockerComposeFiles: 'build.docker-compose.yml'
+        action: 'Build services'
+        additionalImageTags: '$(Build.BuildNumber)'
+    - task: DockerCompose@0
+      inputs:
+        containerregistrytype: 'Container Registry'
+        dockerRegistryEndpoint: 'GitHub Container Registry'
+        dockerComposeFile: '**/docker-compose.yml'
+        additionalDockerComposeFiles: 'build.docker-compose.yml'
+        action: 'Push services'
+        additionalImageTags: '$(Build.BuildNumber)'
+```
+
+Save and trigger pipeline.
+
+Effect:
+
+![Untitled](./media/Untitled%2019.png)
+
+Before setup deployment we have to add `CR_PAT` in ADO
+
+Navigate to your project in Azure DevOps and select the `Project Settings` blade. From there, select the `Service Connections` tab.
+
+Choose your target subscription and resource group and set the `Service Connection` name to `Fabrikam-Azure`. Save the service connection - we will reference it in a later step.
+
+Bach to pipeline, and click edit. In Variable add new one `CR_PAT`.
+
+![Untitled](./media/Untitled%2020.png)
+
+In YAML file add section for deployment:
+
+```
+- stage: DeployProd
+  dependsOn: build
+  jobs:
+  - deployment: webapp
+    environment: production
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: self
+
+          - powershell: |
+              (gc .\docker-compose.yml) `
+                -replace ':latest',':$(Build.BuildNumber)' | `
+                set-content .\docker-compose.yml
+                
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: 'Fabrikam-Azure' # <-- The service
+              scriptType: 'pscore'                # connection from step 14
+              scriptLocation: 'scriptPath'
+              scriptPath: './infrastructure/deploy-webapp.ps1'
+              workingDirectory: ./infrastructure
+              arguments: 'XXX'         # <-- This should be your custom
+            env:                       # lowercase three character 
+              CR_PAT: $(CR_PAT)
+```
+
+To ensure a smooth pipeline run, make sure to first access the Environment settings and add a production step with self-approval check. This will help streamline the process and ensure maximum efficiency. Like on the screens.
+
+![Untitled](./media/Untitled%2021.png)
+
+![Untitled](./media/Untitled%2022.png)
+
+After then, back to Pipelines and run.
+
+END WORKSHOP!
+
+Thank you!
