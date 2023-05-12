@@ -597,7 +597,7 @@ In YAML file add section for deployment:
               azureSubscription: 'Fabrikam-Azure' # <-- The service
               scriptType: 'pscore'                # connection from step 14
               scriptLocation: 'scriptPath'
-              scriptPath: './infrastructure/deploy-webapp.ps1'
+              scriptPath: './infrastructure/4-deploy-webapp.ps1'
               workingDirectory: ./infrastructure
               arguments: 'XXX'         # <-- This should be your custom
             env:                       # lowercase three character 

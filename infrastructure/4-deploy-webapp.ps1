@@ -1,9 +1,10 @@
-$studentprefix = "pr"
-$githubAccount = "rogalapiotr"
+$studentprefix = "XXX"
+$githubAccount = "XXX"
 $resourcegroupName = "fabmedical-rg-" + $studentprefix
 $webappName = "fabmedical-web-" + $studentprefix
 
-# PAT cd ./infrastructure
+# cd ./infrastructure
+# in terminal put PAT: $env:CR_PAT="YOUR_PAT"
 
 # Deploy Azure Web App
 az webapp config container set `

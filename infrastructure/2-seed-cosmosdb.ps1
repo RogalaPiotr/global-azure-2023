@@ -1,5 +1,5 @@
-$studentprefix = "pr"
-$githubAccount = "rogalapiotr"
+$studentprefix = "XXX"
+$githubAccount = "XXX"
 $resourcegroupName = "fabmedical-rg-" + $studentprefix
 $cosmosDBName = "fabmedical-cdb-" + $studentprefix
 
